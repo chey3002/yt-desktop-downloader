@@ -54,13 +54,13 @@ app.whenReady().then(() => {
   ipcMain.on('send-url', async (event, data) => {
     try {
       const url = data.replace(/"/g, '')
-      const id = await ytdl.getURLid(url)
-      const meta = await ytdl.getInfo(url)
+      const videoId = await ytdl.getURLVideoID(url)
+      const metaInfo = await ytdl.getInfo(url)
       let newData = {
-        url: 'https://www.youtube.com/embed/' + id,
-        info: meta.formats
+        url: 'https://www.youtube.com/embed/' + videoId,
+        info: metaInfo.formats
       }
-      const sortedInfo = meta.formats.sort((a, b) => {
+      const sortedInfo = metaInfo.formats.sort((a, b) => {
         const aHasVideo = a.hasVideo
         const aHasAudio = a.hasAudio
         const bHasVideo = b.hasVideo
