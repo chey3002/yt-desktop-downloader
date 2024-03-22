@@ -25,5 +25,16 @@ To build the application for production, run:
 ```bash
 npm run build:win
 ```
-# Warning
+## Credits
+### Important Dependencies:
+   - "ffmpeg-static"
+   - "ffprobe-static"
+   - "fluent-ffmpeg"
+   - "react-hot-toast"
+   - "react-loader-spinner"
+   - "ytdl-core"
+### Credits
+I used this [tutorial](https://alexandercleasby.dev/blog/use-ffmpeg-electron) to include FFMPEG binaries at build
+
+## Warning
 Be careful about download 12k 120fps hdr bla bla bla videos, those will be really heavy and your pc could explote if you try to play that video Quality
