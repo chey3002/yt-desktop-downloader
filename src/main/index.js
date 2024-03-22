@@ -14,7 +14,9 @@ function createWindow() {
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
+      sandbox: false,
+      nodeIntegration: true
+
     }
   })
 
@@ -53,7 +55,7 @@ app.whenReady().then(() => {
   // IPC event for downloading video
   ipcMain.on('send-url', async (event, data) => {
     try {
-      const url = data.replace(/"/g, '')
+      const url = data
       const videoId = await ytdl.getURLVideoID(url)
       const metaInfo = await ytdl.getInfo(url)
       let newData = {

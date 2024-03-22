@@ -9,10 +9,11 @@ const App = () => {
 
   const handleDownload = async () => {
     console.log(videoUrl)
-    window.electron.ipcRenderer.send('send-url', JSON.stringify(videoUrl))
+    window.electron.ipcRenderer.send('send-url', videoUrl)
     window.electron.ipcRenderer.on('send-url-reply', (event, arg) => {
       setFormatList(arg)
       setVideoUrl('')
+      setSelectedFormat(arg.info[0])
     })
   }
 
