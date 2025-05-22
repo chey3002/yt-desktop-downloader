@@ -25,7 +25,7 @@
     "fluent-ffmpeg": "^2.1.2",
     "react-hot-toast": "^2.4.1",
     "react-loader-spinner": "^6.1.6",
-    "ytdl-core": "^4.11.5"
+    "@distube/ytdl-core": "^4.11.4"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^1.0.2",
@@ -46,12 +46,27 @@
   },
   "build": {
     "win": {
-      "requestedExecutionLevel": "highestAvailable"
+      "requestedExecutionLevel": "highestAvailable",
+      "target": [
+        "nsis"
+      ],
+      "artifactName": "${productName}-Setup-${version}.${ext}",
+      "signingHashAlgorithms": null,
+      "signAndEditExecutable": false
     },
     "asarUnpack": [
       "node_modules/ffmpeg-static/bin/${os}/${arch}/ffmpeg",
       "node_modules/ffmpeg-static/index.js",
       "node_modules/ffmpeg-static/package.json"
+    ],
+    "files": [
+      "out/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "node_modules/ffmpeg-static/bin/${os}/${arch}/ffmpeg",
+        "to": "ffmpeg"
+      }
     ]
   }
 }

@@ -2,7 +2,7 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import path, { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import ytdl from 'ytdl-core'
+import ytdl from '@distube/ytdl-core'
 import fs from 'fs'
 import ffmpeg from 'fluent-ffmpeg'
 
@@ -209,20 +209,26 @@ async function downloadVideoAndAudio(videoUrl) {
     const audioPath = path.join(app.getPath('downloads'), 'temp_audio.aac')
     // Check if videoPath and audioPath exist and delete them if they exist
     if (fs.existsSync(videoPath)) {
-      deleteFile(videoPath)
+      fs.unlinkSync(videoPath)
     }
 
     if (fs.existsSync(audioPath)) {
-      deleteFile(audioPath)
+      fs.unlinkSync(audioPath)
     }
+
+    const videoStream = ytdl(videoUrl, { format: videoFormat })
+    const audioStream = ytdl(videoUrl, { format: audioFormat })
+
     await Promise.all([
       new Promise((resolve, reject) => {
-        const videoStream = ytdl.downloadFromInfo(info, { format: videoFormat })
-        videoStream.pipe(fs.createWriteStream(videoPath)).on('finish', resolve).on('error', reject)
+        videoStream.pipe(fs.createWriteStream(videoPath))
+          .on('finish', resolve)
+          .on('error', reject)
       }),
       new Promise((resolve, reject) => {
-        const audioStream = ytdl.downloadFromInfo(info, { format: audioFormat })
-        audioStream.pipe(fs.createWriteStream(audioPath)).on('finish', resolve).on('error', reject)
+        audioStream.pipe(fs.createWriteStream(audioPath))
+          .on('finish', resolve)
+          .on('error', reject)
       })
     ])
 
