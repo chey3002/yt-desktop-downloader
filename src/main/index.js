@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import path, { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
@@ -125,6 +126,18 @@ app.whenReady().then(() => {
     }
   })
 
+  ipcMain.on('download-custom', async (event, data) => {
+    try {
+      const { url, videoItag, audioItag } = data
+      const outputPath = app.getPath('downloads')
+      await downloadAndCombineCustom(url, videoItag, audioItag, outputPath)
+      event.reply('download-custom-reply', 'success')
+    } catch (error) {
+      event.reply('download-custom-reply', 'error')
+      console.error(error)
+    }
+  })
+
   createWindow()
 
   app.on('activate', function () {
@@ -166,28 +179,58 @@ async function combineVideoAndAudio(videoPath, audioPath, outputPath) {
     console.log('Error al combinar video y audio:', error)
     throw error
   } finally {
-    // Eliminar video y audio temporales
-    const videoPath = path.join(app.getPath('downloads'), 'temp_video.mp4')
-    const audioPath = path.join(app.getPath('downloads'), 'temp_audio.aac')
-    if (fs.existsSync(videoPath)) {
-      deleteFile(videoPath)
-    }
-    if (fs.existsSync(audioPath)) {
-      deleteFile(audioPath)
+    // Eliminar video y audio temporales (ambos nombres posibles)
+    const tempPaths = [
+      path.join(app.getPath('downloads'), 'temp_video.mp4'),
+      path.join(app.getPath('downloads'), 'temp_audio.aac'),
+      path.join(app.getPath('downloads'), 'temp_video_custom.mp4'),
+      path.join(app.getPath('downloads'), 'temp_audio_custom.aac')
+    ]
+    for (const tempFile of tempPaths) {
+      if (fs.existsSync(tempFile)) {
+        try {
+          fs.unlinkSync(tempFile)
+          console.log('Archivo temporal eliminado:', tempFile)
+        } catch (err) {
+          console.error('No se pudo eliminar el archivo temporal:', tempFile, err)
+        }
+      }
     }
   }
 }
 
 async function downloadAndCombine(videoUrl, outputPath) {
-  try {
-    const { videoPath, audioPath, name, author } = await downloadVideoAndAudio(videoUrl, outputPath)
-    const outputName = cleanStrings(name) + ' - ' + cleanStrings(author) + '.mp4'
-    outputPath = path.join(outputPath, outputName)
-    await combineVideoAndAudio(videoPath, audioPath, outputPath)
-  } catch (error) {
-    console.error('Error al descargar y combinar video y audio:', error)
-    throw error
-  }
+  const { videoPath, audioPath, name, author } = await downloadVideoAndAudio(videoUrl, outputPath)
+  const outputName = cleanStrings(name) + ' - ' + cleanStrings(author) + '.mp4'
+  outputPath = path.join(outputPath, outputName)
+  await combineVideoAndAudio(videoPath, audioPath, outputPath)
+}
+
+async function downloadAndCombineCustom(videoUrl, videoItag, audioItag, outputPath) {
+  const info = await ytdl.getInfo(videoUrl)
+  const videoFormat = info.formats.find((f) => f.itag.toString() === videoItag.toString())
+  const audioFormat = info.formats.find((f) => f.itag.toString() === audioItag.toString())
+  const videoPath = path.join(app.getPath('downloads'), 'temp_video_custom.mp4')
+  const audioPath = path.join(app.getPath('downloads'), 'temp_audio_custom.aac')
+  if (fs.existsSync(videoPath)) fs.unlinkSync(videoPath)
+  if (fs.existsSync(audioPath)) fs.unlinkSync(audioPath)
+  const videoStream = ytdl(videoUrl, { format: videoFormat })
+  const audioStream = ytdl(videoUrl, { format: audioFormat })
+  await Promise.all([
+    new Promise((resolve, reject) => {
+      videoStream.pipe(fs.createWriteStream(videoPath)).on('finish', resolve).on('error', reject)
+    }),
+    new Promise((resolve, reject) => {
+      audioStream.pipe(fs.createWriteStream(audioPath)).on('finish', resolve).on('error', reject)
+    })
+  ])
+  const outputName =
+    cleanStrings(info.videoDetails.title) +
+    ' - ' +
+    cleanStrings(info.videoDetails.author.name) +
+    ' (custom).mp4'
+  const finalOutput = path.join(outputPath, outputName)
+  await combineVideoAndAudio(videoPath, audioPath, finalOutput)
 }
 
 async function downloadVideoAndAudio(videoUrl) {
@@ -221,14 +264,10 @@ async function downloadVideoAndAudio(videoUrl) {
 
     await Promise.all([
       new Promise((resolve, reject) => {
-        videoStream.pipe(fs.createWriteStream(videoPath))
-          .on('finish', resolve)
-          .on('error', reject)
+        videoStream.pipe(fs.createWriteStream(videoPath)).on('finish', resolve).on('error', reject)
       }),
       new Promise((resolve, reject) => {
-        audioStream.pipe(fs.createWriteStream(audioPath))
-          .on('finish', resolve)
-          .on('error', reject)
+        audioStream.pipe(fs.createWriteStream(audioPath)).on('finish', resolve).on('error', reject)
       })
     ])
 
@@ -245,24 +284,9 @@ async function downloadVideoAndAudio(videoUrl) {
     throw error
   }
 }
-
-// Eliminar archivo
-function deleteFile(filePath) {
-  return new Promise((resolve, reject) => {
-    fs.unlink(filePath, (err) => {
-      if (err) {
-        console.error('Error al eliminar archivo:', err)
-        reject(err)
-      } else {
-        console.log('Archivo eliminado:', filePath)
-        resolve()
-      }
-    })
-  })
-}
 function cleanStrings(string) {
   // Lista de caracteres no deseados
-  const caracteresNoDeseados = /[<>:"\/\\|?*]/g
+  const caracteresNoDeseados = /[<>:"/\\|?*]/g
   // Reemplazar los caracteres no deseados con un espacio en blanco
   const stringLimpio = string.replace(caracteresNoDeseados, ' ')
   return stringLimpio.trim()
