@@ -19,7 +19,7 @@
     "build:dev": "electron-vite build && electron-vite dev --watch"
   },
   "dependencies": {
-    "@distube/ytdl-core": "^4.11.4",
+    "@distube/ytdl-core": "^4.16.12",
     "@electron-toolkit/preload": "^3.0.0",
     "@electron-toolkit/utils": "^3.0.0",
     "ffmpeg-static": "^5.2.0",

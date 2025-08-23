@@ -1,177 +1,200 @@
-/* eslint-disable prettier/prettier */
-import { useState } from 'react'
-import './assets/main.css'
-import YtLogo from './components/ytLogo'
-// eslint-disable-next-line no-unused-vars
-import toast, { Toaster } from 'react-hot-toast'
-import { Grid } from 'react-loader-spinner'
+/**
+ * Refactored App using modular components
+ */
+import React, { useState, useEffect } from 'react';
+import './assets/main.css';
+import toast, { Toaster } from 'react-hot-toast';
+import { Grid } from 'react-loader-spinner';
+import { FormatList } from './interfaces/video.interfaces';
 
-interface FormatInfo {
-    itag: number;
-    container: string;
-    qualityLabel?: string;
-    mimeType: string;
-    fps?: number;
-    codecs: string;
-    audioQuality?: string;
-    bitrate?: number;
-    hasVideo: boolean;
-    hasAudio: boolean;
-}
+// Components
+import Header from './components/Header';
+import SearchBar from './components/SearchBar';
+import VideoPreview from './components/VideoPreview';
+import FormatSelector from './components/FormatSelector';
+import DownloadStatus from './components/DownloadStatus';
+import DownloadResult from './components/DownloadResult';
+import Footer from './components/Footer';
 
-interface FormatList {
-    url: string;
-    info: FormatInfo[];
-}
+/**
+ * Main application component
+ */
+const App: React.FC = () => {
+    // Video URL state
+    const [videoUrl, setVideoUrl] = useState<string>('');
 
-const App = () => {
-    const [videoUrl, setVideoUrl] = useState('')
-    const [formatlist, setFormatList] = useState<FormatList | null>(null)
-    const [selectedVideoItag, setSelectedVideoItag] = useState<string | null>(null)
-    const [selectedAudioItag, setSelectedAudioItag] = useState<string | null>(null)
-    const [loading, setLoading] = useState(false)
-    const videoSuccess = () => toast.success('Video downloaded successfully', { id: Date.now().toString() })
-    const videoError = () => toast.error('Error downloading video', { id: Date.now().toString() })
+    // Available formats list state
+    const [formatList, setFormatList] = useState<FormatList | null>(null);
 
+    // Selected formats state
+    const [selectedVideoItag, setSelectedVideoItag] = useState<string | null>(null);
+    const [selectedAudioItag, setSelectedAudioItag] = useState<string | null>(null);
+
+    // Download state
+    const [loading, setLoading] = useState<boolean>(false);
+    const [progress, setProgress] = useState<number>(0);
+    const [downloadComplete, setDownloadComplete] = useState<boolean>(false);
+    const [downloadPath, setDownloadPath] = useState<string | null>(null);
+
+    /**
+     * Notifications configuration
+     */
+    const videoSuccess = () => toast.success('Video downloaded successfully!', { id: Date.now().toString() });
+    const videoError = () => toast.error('Error downloading video', { id: Date.now().toString() });
+
+    /**
+     * Handler to search for video information
+     */
     const handleSearch = async () => {
-        console.log(videoUrl)
-        window.electron.ipcRenderer.send('send-url', videoUrl)
-        window.electron.ipcRenderer.on('send-url-reply', (_, arg) => {
-            setFormatList(arg as FormatList)
-        })
-    }
+        if (!videoUrl || !videoUrl.trim()) {
+            toast.error('Please enter a valid URL');
+            return;
+        }
+
+        setLoading(true);
+        window.electron.ipcRenderer.send('send-url', videoUrl);
+    };
+
+    /**
+     * Effect to configure IPC listeners
+     */
+    useEffect(() => {
+        // Listener for URL search response
+        const urlReplyHandler = (_: any, arg: FormatList) => {
+            setLoading(false);
+            setFormatList(arg);
+        };
+
+        // Listener for download progress
+        const progressHandler = (_: any, arg: number) => {
+            setProgress(arg);
+        };
+
+        // Listener for download response
+        const downloadReplyHandler = (_: any, arg: string | { status: string, path: string }) => {
+            setLoading(false);
+
+            if (typeof arg === 'string') {
+                if (arg === 'success') {
+                    videoSuccess();
+                    setDownloadComplete(true);
+                } else {
+                    videoError();
+                }
+            } else {
+                if (arg.status === 'success') {
+                    videoSuccess();
+                    setDownloadComplete(true);
+                    setDownloadPath(arg.path);
+                } else {
+                    videoError();
+                }
+            }
+        };
+
+        // Listener for custom download response
+        const customDownloadReplyHandler = (_: any, arg: string | { status: string, path: string }) => {
+            setLoading(false);
+
+            if (typeof arg === 'string') {
+                if (arg === 'success') {
+                    videoSuccess();
+                    setDownloadComplete(true);
+                } else {
+                    videoError();
+                }
+            } else {
+                if (arg.status === 'success') {
+                    videoSuccess();
+                    setDownloadComplete(true);
+                    setDownloadPath(arg.path);
+                } else {
+                    videoError();
+                }
+            }
+        };
+
+        // Register listeners
+        window.electron.ipcRenderer.on('send-url-reply', urlReplyHandler);
+        window.electron.ipcRenderer.on('download-progress', progressHandler);
+        window.electron.ipcRenderer.on('download-reply', downloadReplyHandler);
+        window.electron.ipcRenderer.on('download-custom-reply', customDownloadReplyHandler);
+
+        // Clean up listeners when unmounting
+        return () => {
+            window.electron.ipcRenderer.removeAllListeners('send-url-reply');
+            window.electron.ipcRenderer.removeAllListeners('download-progress');
+            window.electron.ipcRenderer.removeAllListeners('download-reply');
+            window.electron.ipcRenderer.removeAllListeners('download-custom-reply');
+        };
+    }, []);
+
+    /**
+     * Download handler
+     */
+    const handleDownload = () => {
+        // Download logic is handled in the FormatSelector component
+    };
 
     return (
         <>
             <div className="bg-gradient-to-r from-violet-900 to-blue-950 flex flex-col justify-center items-center min-h-screen text-white">
-                {loading ? (
-                    <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50">
+                {/* Loading component */}
+                {loading && (
+                    <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50 z-50">
                         <div className="bg-black p-4 rounded shadow-lg flex justify-center items-center">
                             <Grid color="#FF10F0" height={80} width={80} />
                         </div>
                     </div>
-                ) : null}
-                <div className="flex flex-col justify-center items-center">
-                    <div className="mb-8">
-                        <YtLogo height="150" width="500" />
-                    </div>
-                    <h1 className="text-4xl font-bold mb-12">Desktop Downloader</h1>
-                </div>
-                <div className="flex flex-row items-center mb-8 ">
-                    <input
-                        type="text"
-                        placeholder="Url"
-                        value={videoUrl}
-                        onChange={(e) => setVideoUrl(e.target.value)}
-                        className=" outline-none p-2 bg-blue-800 border-2 border-gray-500 focus:border-white hover:border-white rounded-md mr-4 w-64"
-                    />
-                    <button
-                        onClick={handleSearch}
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                    >
-                        Search
-                    </button>
-                </div>
-                {formatlist !== null && (
-                    <div>
-                        <div className="my-4">
-                            <iframe width="570" height="320" src={`${formatlist.url}`} title="video" />
-                        </div>
-                        <div className="flex flex-col md:flex-row justify-center items-center gap-4">
-                            {/* Selector de calidad de video */}
-                            <div>
-                                <label className="block mb-1">Max Quality</label>
-                                <select
-                                    onChange={(e) => setSelectedVideoItag(e.target.value)}
-                                    className="bg-white text-black rounded shadow mr-4 w-64"
-                                    value={selectedVideoItag || ''}
-                                >
-                                    <option value="">Max Quality</option>
-                                    {[...new Map(
-                                        (formatlist?.info || [])
-                                            .filter((f) => f.hasVideo && !f.hasAudio)
-                                            .map((f) => [
-                                                `${f.qualityLabel || f.mimeType}|${f.fps || ''}|${f.container || ''}|${f.codecs || ''}`,
-                                                f
-                                            ])
-                                    ).values()].map((format) => (
-                                        <option key={format.itag} value={format.itag}>
-                                            {format.qualityLabel || format.mimeType} | {format.fps ? `${format.fps}fps` : ''} | {format.container} | {format.codecs}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                            {/* Selector de calidad de audio */}
-                            <div>
-                                <label className="block mb-1">Audio Quality</label>
-                                <select
-                                    onChange={(e) => setSelectedAudioItag(e.target.value)}
-                                    className="bg-white text-black rounded shadow w-64"
-                                    value={selectedAudioItag || ''}
-                                >
-                                    <option value="">Max Quality</option>
-                                    {[...new Map(
-                                        (formatlist?.info || [])
-                                            .filter((f) => !f.hasVideo && f.hasAudio)
-                                            .map((f) => [
-                                                `${f.audioQuality || f.mimeType}|${f.container || ''}|${f.codecs || ''}|${f.bitrate || ''}`,
-                                                f
-                                            ])
-                                    ).values()].map((format) => (
-                                        <option key={format.itag} value={format.itag}>
-                                            {format.audioQuality || format.mimeType} | {format.container} | {format.codecs} | {format.bitrate ? `${(format.bitrate / 1000).toFixed(0)}kbps` : ''}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                            <button
-                                onClick={async () => {
-                                    // Si ambos selectores están en valor por defecto, descargar máxima calidad
-                                    if (!selectedVideoItag && !selectedAudioItag) {
-                                        setLoading(true)
-                                        window.electron.ipcRenderer.send('download', videoUrl)
-                                        window.electron.ipcRenderer.once('download-reply', (_, arg) => {
-                                            setLoading(false)
-                                            if (arg === 'success') {
-                                                videoSuccess()
-                                            } else {
-                                                videoError()
-                                            }
-                                        })
-                                        return
-                                    }
-                                    if (selectedVideoItag && selectedAudioItag) {
-                                        setLoading(true)
-                                        window.electron.ipcRenderer.send('download-custom', {
-                                            url: videoUrl,
-                                            videoItag: selectedVideoItag,
-                                            audioItag: selectedAudioItag
-                                        })
-                                        window.electron.ipcRenderer.once('download-custom-reply', (_, arg) => {
-                                            setLoading(false)
-                                            if (arg === 'success') {
-                                                videoSuccess()
-                                            } else {
-                                                videoError()
-                                            }
-                                        })
-                                    } else {
-                                        toast.error('Select both audio and video quality')
-                                    }
-                                }}
-                                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                            >
-                                Download
-                            </button>
-                        </div>
+                )}
 
+                {/* Application header */}
+                <Header />
+
+                {/* Search bar */}
+                <SearchBar
+                    videoUrl={videoUrl}
+                    setVideoUrl={setVideoUrl}
+                    onSearch={handleSearch}
+                />
+
+                {formatList !== null && (
+                    <div>
+                        {/* Video preview */}
+                        <VideoPreview url={formatList.url} />
+
+                        {/* Format selector */}
+                        <FormatSelector
+                            formats={formatList.info}
+                            selectedVideoItag={selectedVideoItag}
+                            selectedAudioItag={selectedAudioItag}
+                            setSelectedVideoItag={setSelectedVideoItag}
+                            setSelectedAudioItag={setSelectedAudioItag}
+                            onDownload={handleDownload}
+                            videoUrl={videoUrl}
+                            setLoading={setLoading}
+                        />
                     </div>
                 )}
+
+                {/* Download status */}
+                <DownloadStatus
+                    isLoading={loading}
+                    progress={progress}
+                />
+
+                {/* Download result */}
+                <DownloadResult
+                    downloadComplete={downloadComplete}
+                    downloadPath={downloadPath}
+                />
             </div>
+
+            {/* Notification system */}
             <Toaster position="bottom-center" reverseOrder={false} />
-            <div className="fixed bottom-0 right-0 p-4 text-gray-600">
-                <div>Created by SrChey</div>
-            </div>
+
+            {/* Footer */}
+            <Footer />
         </>
     )
 }
