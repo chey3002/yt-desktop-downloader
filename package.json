@@ -9,27 +9,37 @@
     "format": "prettier --write .",
     "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
     "start": "electron-vite preview",
-    "dev": "electron-vite dev",
+    "dev": "electron-vite dev --watch",
     "build": "electron-vite build",
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "npm run build && electron-builder --dir",
     "build:win": "npm run build && electron-builder --win",
     "build:mac": "npm run build && electron-builder --mac",
-    "build:linux": "npm run build && electron-builder --linux"
+    "build:linux": "npm run build && electron-builder --linux",
+    "build:dev": "electron-vite build && electron-vite dev --watch"
   },
   "dependencies": {
+    "@distube/ytdl-core": "^4.11.4",
     "@electron-toolkit/preload": "^3.0.0",
     "@electron-toolkit/utils": "^3.0.0",
     "ffmpeg-static": "^5.2.0",
     "ffprobe-static": "^3.1.0",
     "fluent-ffmpeg": "^2.1.2",
     "react-hot-toast": "^2.4.1",
-    "react-loader-spinner": "^6.1.6",
-    "@distube/ytdl-core": "^4.11.4"
+    "react-loader-spinner": "^6.1.6"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^1.0.2",
     "@electron-toolkit/eslint-config-prettier": "^2.0.0",
+    "@types/electron": "^1.4.38",
+    "@types/ffmpeg-static": "^3.0.3",
+    "@types/ffprobe-static": "^2.0.3",
+    "@types/fluent-ffmpeg": "^2.1.27",
+    "@types/node": "^24.3.0",
+    "@types/react": "^19.1.11",
+    "@types/react-dom": "^19.1.7",
+    "@typescript-eslint/eslint-plugin": "^8.40.0",
+    "@typescript-eslint/parser": "^8.40.0",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.18",
     "electron": "^28.2.0",
@@ -42,7 +52,9 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "tailwindcss": "^3.4.1",
-    "vite": "^5.0.12"
+    "typescript": "^5.9.2",
+    "vite": "^5.0.12",
+    "vite-plugin-checker": "^0.10.2"
   },
   "build": {
     "win": {
