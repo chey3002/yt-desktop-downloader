@@ -1,11 +1,11 @@
 /**
- * Componente para el encabezado de la aplicación
+ * Component for the application header
  */
 import React from 'react';
 import YtLogo from './ytLogo';
 
 /**
- * Muestra el logo y el título de la aplicación
+ * Displays the logo and title of the application
  */
 const Header: React.FC = () => {
   return (

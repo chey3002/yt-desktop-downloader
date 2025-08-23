@@ -1,5 +1,5 @@
 /**
- * Servicio para el manejo de operaciones de FFmpeg
+ * Service for handling FFmpeg operations
  */
 import { app } from 'electron';
 import path from 'path';
@@ -7,26 +7,26 @@ import fs from 'fs';
 import ffmpeg from 'fluent-ffmpeg';
 
 /**
- * Configura el entorno FFmpeg con las rutas correctas a los binarios
+ * Configure the FFmpeg environment with the correct binary paths
  */
 export function configureFFmpeg(): void {
-  // Obtener las rutas a los binarios empaquetados, considerando la estructura de asar
+  // Get paths to packaged binaries, considering the asar structure
   const ffmpegPath = require('ffmpeg-static').replace('app.asar', 'app.asar.unpacked');
   const ffprobePath = require('ffprobe-static').path.replace('app.asar', 'app.asar.unpacked');
   
-  // Configurar las rutas en ffmpeg
+  // Configure paths in ffmpeg
   ffmpeg.setFfmpegPath(ffmpegPath);
   ffmpeg.setFfprobePath(ffprobePath);
 }
 
 /**
- * Combina archivos de video y audio utilizando ffmpeg
+ * Combines video and audio files using ffmpeg
  * 
- * @param videoPath - Ruta al archivo de video
- * @param audioPath - Ruta al archivo de audio
- * @param outputPath - Ruta donde se guardará el archivo combinado
- * @param event - Evento IPC opcional para enviar progreso
- * @returns Una promesa que se resuelve cuando se completa la combinación
+ * @param videoPath - Path to the video file
+ * @param audioPath - Path to the audio file
+ * @param outputPath - Path where the combined file will be saved
+ * @param event - Optional IPC event to send progress updates
+ * @returns A promise that resolves when the combination is complete
  */
 export async function combineVideoAndAudio(
   videoPath: string, 
@@ -35,52 +35,52 @@ export async function combineVideoAndAudio(
   event?: Electron.IpcMainEvent
 ): Promise<void> {
   try {
-    // Indicar inicio de la combinación (60% ya completado anteriormente)
+    // Indicate start of combination (60% already completed previously)
     if (event) {
       event.reply('download-progress', 60);
     }
     
-    // Usar Promise para manejar la operación asíncrona de ffmpeg
+    // Use Promise to handle ffmpeg's asynchronous operation
     await new Promise<void>((resolve, reject) => {
       ffmpeg()
-        .input(videoPath)  // Entrada de video
-        .input(audioPath)  // Entrada de audio
-        .outputOptions('-c:v copy')  // Copiar video sin re-codificar
-        .outputOptions('-c:a aac')   // Codificar audio a AAC
-        .output(outputPath)          // Archivo de salida
+        .input(videoPath)  // Video input
+        .input(audioPath)  // Audio input
+        .outputOptions('-c:v copy')  // Copy video without re-encoding
+        .outputOptions('-c:a aac')   // Encode audio to AAC
+        .output(outputPath)          // Output file
         .on('progress', (progress) => {
-          // FFmpeg no proporciona un progreso confiable, así que usamos un valor fijo
-          // Combinación vale 30% (desde 60% hasta 90%)
+          // FFmpeg doesn't provide reliable progress, so we use a fixed value
+          // Combination is worth 30% (from 60% to 90%)
           if (event) {
             event.reply('download-progress', 90);
           }
         })
         .on('end', () => {
-          console.log('Combinación de audio y video completada');
+          console.log('Video and audio combination completed');
           resolve();
         })
         .on('error', (err) => {
-          console.error('Error al combinar video y audio:', err);
+          console.error('Error combining video and audio:', err);
           reject(err);
         })
-        .run();  // Iniciar proceso
+        .run();  // Start process
     });
     
-    // Avanzar al 90% después de la combinación
+    // Advance to 90% after combination
     if (event) {
       event.reply('download-progress', 90);
     }
   } catch (error) {
-    console.log('Error al combinar video y audio:', error);
+    console.log('Error combining video and audio:', error);
     throw error;
   } finally {
-    // Limpiar archivos temporales (9% más)
+    // Clean up temporary files (9% more)
     if (event) {
       event.reply('download-progress', 99);
     }
     cleanupTempFiles();
     
-    // Proceso completado (100%)
+    // Process completed (100%)
     if (event) {
       event.reply('download-progress', 100);
     }
@@ -88,7 +88,7 @@ export async function combineVideoAndAudio(
 }
 
 /**
- * Limpia los archivos temporales generados durante el proceso
+ * Cleans up temporary files generated during the process
  */
 export function cleanupTempFiles(): void {
   const tempPaths = [
@@ -102,9 +102,9 @@ export function cleanupTempFiles(): void {
     if (fs.existsSync(tempFile)) {
       try {
         fs.unlinkSync(tempFile);
-        console.log('Archivo temporal eliminado:', tempFile);
+        console.log('Temporary file removed:', tempFile);
       } catch (err) {
-        console.error('No se pudo eliminar el archivo temporal:', tempFile, err);
+        console.error('Could not delete temporary file:', tempFile, err);
       }
     }
   }

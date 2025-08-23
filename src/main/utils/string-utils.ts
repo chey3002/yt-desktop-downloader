@@ -1,20 +1,20 @@
 /**
- * Utilidades para el manejo de cadenas de texto
+ * Utilities for string handling
  */
 
 /**
- * Limpia una cadena de texto eliminando caracteres no permitidos en nombres de archivo
+ * Cleans a string by removing characters not allowed in file names
  * 
- * @param string - Cadena de texto a limpiar
- * @returns Cadena de texto limpia
+ * @param string - String to clean
+ * @returns Clean string
  */
 export function cleanStrings(string: string): string {
-  // Lista de caracteres no deseados en nombres de archivo
-  const caracteresNoDeseados = /[<>:"/\\|?*]/g;
+  // List of unwanted characters in file names
+  const unwantedChars = /[<>:"/\\|?*]/g;
   
-  // Reemplazar los caracteres no deseados con un espacio en blanco
-  const stringLimpio = string.replace(caracteresNoDeseados, ' ');
+  // Replace unwanted characters with a space
+  const cleanString = string.replace(unwantedChars, ' ');
   
-  // Eliminar espacios adicionales al inicio y final
-  return stringLimpio.trim();
+  // Remove extra spaces at the beginning and end
+  return cleanString.trim();
 }

@@ -1,5 +1,5 @@
 /**
- * Punto de entrada principal de la aplicación Electron
+ * Main entry point of the Electron application
  */
 import { app, ipcMain } from 'electron';
 import { electronApp, optimizer } from '@electron-toolkit/utils';
@@ -11,26 +11,26 @@ import {
 } from './handlers/video-handler';
 
 /**
- * Inicializa la aplicación y configura los manejadores de eventos
+ * Initializes the application and sets up event handlers
  */
 function initialize(): void {
-  // Cuando la aplicación esté lista
+  // When the application is ready
   app.whenReady().then(() => {
-    // Configurar ID de modelo para Windows
+    // Set up model ID for Windows
     electronApp.setAppUserModelId('com.electron');
 
-    // Configurar atajos de teclado para las ventanas (F12 para DevTools, etc.)
+    // Configure keyboard shortcuts for windows (F12 for DevTools, etc.)
     app.on('browser-window-created', (_, window) => {
       optimizer.watchWindowShortcuts(window);
     });
 
-    // Registrar manejadores para los eventos IPC
+    // Register handlers for IPC events
     setupIpcHandlers();
 
-    // Crear la ventana principal
+    // Create the main window
     createMainWindow();
 
-    // En macOS es común recrear una ventana cuando se hace clic en el icono del dock
+    // On macOS it's common to recreate a window when clicking the dock icon
     app.on('activate', function () {
       if (require('electron').BrowserWindow.getAllWindows().length === 0) {
         createMainWindow();
@@ -38,7 +38,7 @@ function initialize(): void {
     });
   });
 
-  // Salir cuando todas las ventanas estén cerradas, excepto en macOS
+  // Quit when all windows are closed, except on macOS
   app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
       app.quit();
@@ -47,18 +47,18 @@ function initialize(): void {
 }
 
 /**
- * Configura los manejadores de eventos IPC para la comunicación renderer-main
+ * Sets up IPC event handlers for renderer-main communication
  */
 function setupIpcHandlers(): void {
-  // Manejador para solicitud de descarga en máxima calidad
+  // Handler for maximum quality download request
   ipcMain.on('download', handleDownloadRequest);
   
-  // Manejador para obtener información sobre formatos de video
+  // Handler for getting video format information
   ipcMain.on('send-url', handleSendUrlRequest);
   
-  // Manejador para descarga con formatos personalizados
+  // Handler for custom format download
   ipcMain.on('download-custom', handleCustomDownloadRequest);
 }
 
-// Iniciar la aplicación
+// Start the application
 initialize();

@@ -1,10 +1,10 @@
 /**
- * Componente para mostrar información de versiones y créditos
+ * Component to display version information and credits
  */
 import React from 'react';
 
 /**
- * Muestra información de versiones y créditos en el pie de página
+ * Displays version information and credits in the footer
  */
 const Footer: React.FC = () => {
   return (

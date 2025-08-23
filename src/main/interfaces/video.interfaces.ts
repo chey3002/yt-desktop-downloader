@@ -1,5 +1,5 @@
 /**
- * Interfaces para los formatos de video y audio
+ * Interfaces for video and audio formats
  */
 export interface FormatInfo {
   itag: number;
@@ -15,7 +15,7 @@ export interface FormatInfo {
 }
 
 /**
- * Representa los datos de la lista de formatos disponibles para un video
+ * Represents the available format list data for a video
  */
 export interface FormatList {
   url: string;
@@ -23,7 +23,7 @@ export interface FormatList {
 }
 
 /**
- * Interfaz para los datos necesarios para descargar un video con formatos personalizados
+ * Interface for the data needed to download a video with custom formats
  */
 export interface CustomDownloadData {
   url: string;
@@ -32,7 +32,7 @@ export interface CustomDownloadData {
 }
 
 /**
- * Interfaz que representa el resultado de una descarga de video y audio
+ * Interface that represents the result of a video and audio download
  */
 export interface VideoAudioResult {
   videoPath: string;

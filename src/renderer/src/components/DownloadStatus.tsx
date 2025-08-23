@@ -1,5 +1,5 @@
 /**
- * Componente para mostrar el estado de descarga y progreso
+ * Component to display download status and progress
  */
 import React from 'react';
 
@@ -9,7 +9,7 @@ interface DownloadStatusProps {
 }
 
 /**
- * Componente que muestra el estado de la descarga y una barra de progreso
+ * Component that displays download status and a progress bar
  */
 const DownloadStatus: React.FC<DownloadStatusProps> = ({ isLoading, progress }) => {
   if (!isLoading) return null;
@@ -19,8 +19,8 @@ const DownloadStatus: React.FC<DownloadStatusProps> = ({ isLoading, progress }) 
       <div className="flex flex-col items-center w-full">
         <div className="text-center mb-2">
           {progress === 100 
-            ? 'Finalizando la descarga y procesando...' 
-            : `Descargando: ${progress}%`}
+            ? 'Finalizing download and processing...' 
+            : `Downloading: ${progress}%`}
         </div>
         <div className="w-full bg-gray-300 rounded-full h-2.5 mb-4 max-w-md">
           <div 

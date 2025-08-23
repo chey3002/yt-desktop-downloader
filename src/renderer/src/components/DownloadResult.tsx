@@ -1,5 +1,5 @@
 /**
- * Componente para mostrar mensajes de resultado de la descarga
+ * Component to display download result messages
  */
 import React from 'react';
 
@@ -9,13 +9,13 @@ interface DownloadResultProps {
 }
 
 /**
- * Componente que muestra el resultado de una descarga completada
+ * Component that displays the result of a completed download
  */
 const DownloadResult: React.FC<DownloadResultProps> = ({ downloadComplete, downloadPath }) => {
   if (!downloadComplete || !downloadPath) return null;
 
   /**
-   * Abre el archivo descargado usando Electron
+   * Opens the downloaded file using Electron
    */
   const openFile = () => {
     if (downloadPath) {
@@ -24,7 +24,7 @@ const DownloadResult: React.FC<DownloadResultProps> = ({ downloadComplete, downl
   };
 
   /**
-   * Abre la ubicación del archivo descargado usando Electron
+   * Opens the location of the downloaded file using Electron
    */
   const openFolder = () => {
     if (downloadPath) {
@@ -35,23 +35,23 @@ const DownloadResult: React.FC<DownloadResultProps> = ({ downloadComplete, downl
   return (
     <div className="mt-4 text-center">
       <p className="text-green-500 font-semibold mb-2">
-        ¡Descarga completada con éxito!
+        Download completed successfully!
       </p>
       <p className="mb-4">
-        Archivo guardado en: <span className="font-mono text-sm">{downloadPath}</span>
+        File saved at: <span className="font-mono text-sm">{downloadPath}</span>
       </p>
       <div className="flex justify-center gap-4">
         <button
           onClick={openFile}
           className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
         >
-          Abrir Archivo
+          Open File
         </button>
         <button
           onClick={openFolder}
           className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
         >
-          Abrir Carpeta
+          Open Folder
         </button>
       </div>
     </div>

@@ -1,5 +1,5 @@
 /**
- * Componente para seleccionar formatos de video y audio
+ * Component to select video and audio formats
  */
 import React from 'react';
 import { FormatInfo } from '../interfaces/video.interfaces';
@@ -17,7 +17,7 @@ interface FormatSelectorProps {
 }
 
 /**
- * Componente para seleccionar formatos de video y audio y descargar el video
+ * Component to select video and audio formats and download the video
  */
 const FormatSelector: React.FC<FormatSelectorProps> = ({
   formats,
@@ -30,17 +30,17 @@ const FormatSelector: React.FC<FormatSelectorProps> = ({
   setLoading
 }) => {
   /**
-   * Maneja el proceso de descarga según las selecciones del usuario
+   * Handles the download process based on user selections
    */
   const handleDownload = async () => {
-    // Si ambos selectores están en valor por defecto, descargar máxima calidad
+    // If both selectors are at default value, download highest quality
     if (!selectedVideoItag && !selectedAudioItag) {
       setLoading(true);
       window.electron.ipcRenderer.send('download', videoUrl);
       return;
     }
     
-    // Si se han seleccionado ambos formatos (video y audio)
+    // If both formats (video and audio) have been selected
     if (selectedVideoItag && selectedAudioItag) {
       setLoading(true);
       window.electron.ipcRenderer.send('download-custom', {
@@ -49,21 +49,21 @@ const FormatSelector: React.FC<FormatSelectorProps> = ({
         audioItag: selectedAudioItag
       });
     } else {
-      toast.error('Selecciona calidad de video y audio');
+      toast.error('Select video and audio quality');
     }
   };
 
   return (
     <div className="flex flex-col md:flex-row justify-center items-center gap-4">
-      {/* Selector de calidad de video */}
+      {/* Video quality selector */}
       <div>
-        <label className="block mb-1">Calidad de Video</label>
+        <label className="block mb-1">Video Quality</label>
         <select
           onChange={(e) => setSelectedVideoItag(e.target.value)}
           className="bg-white text-black rounded shadow mr-4 w-64"
           value={selectedVideoItag || ''}
         >
-          <option value="">Máxima Calidad</option>
+          <option value="">Max Quality</option>
           {[...new Map(
             formats
               .filter((f) => f.hasVideo && !f.hasAudio)
@@ -82,15 +82,15 @@ const FormatSelector: React.FC<FormatSelectorProps> = ({
         </select>
       </div>
       
-      {/* Selector de calidad de audio */}
+      {/* Audio quality selector */}
       <div>
-        <label className="block mb-1">Calidad de Audio</label>
+        <label className="block mb-1">Audio Quality</label>
         <select
           onChange={(e) => setSelectedAudioItag(e.target.value)}
           className="bg-white text-black rounded shadow w-64"
           value={selectedAudioItag || ''}
         >
-          <option value="">Máxima Calidad</option>
+          <option value="">Max Quality</option>
           {[...new Map(
             formats
               .filter((f) => !f.hasVideo && f.hasAudio)
@@ -109,12 +109,12 @@ const FormatSelector: React.FC<FormatSelectorProps> = ({
         </select>
       </div>
       
-      {/* Botón de descarga */}
+      {/* Download button */}
       <button
         onClick={handleDownload}
         className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
       >
-        Descargar
+        Download
       </button>
     </div>
   );

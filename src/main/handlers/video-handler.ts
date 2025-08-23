@@ -1,5 +1,5 @@
 /**
- * Manejador de eventos IPC relacionados con videos
+ * Handler for IPC events related to videos
  */
 import { IpcMainEvent, app } from 'electron';
 import path from 'path';
@@ -13,53 +13,53 @@ import { cleanStrings } from '../utils/string-utils';
 import { CustomDownloadData } from '../interfaces/video.interfaces';
 
 /**
- * Maneja la solicitud para descargar un video en la máxima calidad
+ * Handles the request to download a video in maximum quality
  * 
- * @param event - Evento IPC
- * @param url - URL del video de YouTube
+ * @param event - IPC event
+ * @param url - YouTube video URL
  */
 export async function handleDownloadRequest(event: IpcMainEvent, url: string): Promise<void> {
   try {
     const outputPath = app.getPath('downloads');
     
-    // Descargar el video y audio, luego combinarlos
-    // Pasamos el evento para notificar progreso
+    // Download the video and audio, then combine them
+    // Pass the event to notify progress
     await downloadAndCombine(url, outputPath, event);
     
-    // Notificar éxito al renderer
+    // Notify success to renderer
     event.reply('download-reply', 'success');
   } catch (error) {
-    // Notificar error al renderer
+    // Notify error to renderer
     event.reply('download-reply', 'error');
-    console.error('Error en handleDownloadRequest:', error);
+    console.error('Error in handleDownloadRequest:', error);
   }
 }
 
 /**
- * Maneja la solicitud para obtener información sobre los formatos disponibles
+ * Handles the request to get information about available formats
  * 
- * @param event - Evento IPC
- * @param url - URL del video de YouTube
+ * @param event - IPC event
+ * @param url - YouTube video URL
  */
 export async function handleSendUrlRequest(event: IpcMainEvent, url: string): Promise<void> {
   try {
-    // Obtener los formatos de video disponibles
+    // Get available video formats
     const formatData = await getVideoFormats(url);
     
-    // Enviar datos al renderer
+    // Send data to renderer
     event.reply('send-url-reply', formatData);
   } catch (error) {
-    console.error('Error en handleSendUrlRequest:', error);
-    event.reply('send-url-reply', { error: 'Error al procesar la URL' });
+    console.error('Error in handleSendUrlRequest:', error);
+    event.reply('send-url-reply', { error: 'Error processing URL' });
     throw error;
   }
 }
 
 /**
- * Maneja la solicitud para descargar un video con formatos específicos
+ * Handles the request to download a video with specific formats
  * 
- * @param event - Evento IPC
- * @param data - Datos de la solicitud (URL y formatos)
+ * @param event - IPC event
+ * @param data - Request data (URL and formats)
  */
 export async function handleCustomDownloadRequest(
   event: IpcMainEvent, 
@@ -69,46 +69,46 @@ export async function handleCustomDownloadRequest(
     const { url, videoItag, audioItag } = data;
     const outputPath = app.getPath('downloads');
     
-    // Realizar la descarga con los formatos personalizados
-    // Pasamos el evento para notificar progreso
+    // Perform the download with the custom formats
+    // Pass the event to notify progress
     await downloadAndCombineCustom(url, videoItag, audioItag, outputPath, event);
     
-    // Notificar éxito al renderer
+    // Notify success to renderer
     event.reply('download-custom-reply', 'success');
   } catch (error) {
-    // Notificar error al renderer
+    // Notify error to renderer
     event.reply('download-custom-reply', 'error');
-    console.error('Error en handleCustomDownloadRequest:', error);
+    console.error('Error in handleCustomDownloadRequest:', error);
   }
 }
 
 /**
- * Descarga y combina un video en la máxima calidad disponible
+ * Downloads and combines a video in the highest available quality
  * 
- * @param videoUrl - URL del video
- * @param outputPath - Ruta donde guardar el archivo final
- * @param event - Evento IPC para enviar actualizaciones de progreso
+ * @param videoUrl - Video URL
+ * @param outputPath - Path to save the final file
+ * @param event - IPC event to send progress updates
  */
 async function downloadAndCombine(videoUrl: string, outputPath: string, event?: IpcMainEvent): Promise<void> {
-  // Descargar video y audio con notificación de progreso
+  // Download video and audio with progress notification
   const { videoPath, audioPath, name, author } = await downloadVideoAndAudio(videoUrl, event);
   
-  // Crear nombre de archivo limpio
+  // Create clean filename
   const outputName = cleanStrings(name) + ' - ' + cleanStrings(author) + '.mp4';
   const finalOutputPath = path.join(outputPath, outputName);
   
-  // Combinar los archivos con notificación de progreso
+  // Combine the files with progress notification
   await combineVideoAndAudio(videoPath, audioPath, finalOutputPath, event);
 }
 
 /**
- * Descarga y combina un video usando formatos específicos
+ * Downloads and combines a video using specific formats
  * 
- * @param videoUrl - URL del video
- * @param videoItag - ID del formato de video
- * @param audioItag - ID del formato de audio
- * @param outputPath - Ruta donde guardar el archivo final
- * @param event - Evento IPC para enviar actualizaciones de progreso
+ * @param videoUrl - Video URL
+ * @param videoItag - Video format ID
+ * @param audioItag - Audio format ID
+ * @param outputPath - Path to save the final file
+ * @param event - IPC event to send progress updates
  */
 async function downloadAndCombineCustom(
   videoUrl: string,
@@ -117,7 +117,7 @@ async function downloadAndCombineCustom(
   outputPath: string,
   event?: IpcMainEvent
 ): Promise<void> {
-  // Descargar video y audio con formatos específicos
+  // Download video and audio with specific formats
   const { videoPath, audioPath, title, author } = await downloadCustomVideoAndAudio(
     videoUrl, 
     videoItag, 
@@ -125,7 +125,7 @@ async function downloadAndCombineCustom(
     event
   );
   
-  // Crear nombre de archivo limpio
+  // Create clean filename
   const outputName =
     cleanStrings(title) +
     ' - ' +
@@ -133,6 +133,6 @@ async function downloadAndCombineCustom(
     ' (custom).mp4';
   const finalOutput = path.join(outputPath, outputName);
   
-  // Combinar los archivos con notificación de progreso
+  // Combine the files with progress notification
   await combineVideoAndAudio(videoPath, audioPath, finalOutput, event);
 }

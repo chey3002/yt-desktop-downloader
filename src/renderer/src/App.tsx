@@ -1,5 +1,5 @@
 /**
- * App refactorizado que utiliza componentes modulares
+ * Refactored App using modular components
  */
 import React, { useState, useEffect } from 'react';
 import './assets/main.css';
@@ -7,7 +7,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import { Grid } from 'react-loader-spinner';
 import { FormatList } from './interfaces/video.interfaces';
 
-// Componentes
+// Components
 import Header from './components/Header';
 import SearchBar from './components/SearchBar';
 import VideoPreview from './components/VideoPreview';
@@ -17,37 +17,37 @@ import DownloadResult from './components/DownloadResult';
 import Footer from './components/Footer';
 
 /**
- * Componente principal de la aplicación
+ * Main application component
  */
 const App: React.FC = () => {
-  // Estado para URL del video
+  // Video URL state
   const [videoUrl, setVideoUrl] = useState<string>('');
   
-  // Estado para la lista de formatos disponibles
+  // Available formats list state
   const [formatList, setFormatList] = useState<FormatList | null>(null);
   
-  // Estado para los formatos seleccionados
+  // Selected formats state
   const [selectedVideoItag, setSelectedVideoItag] = useState<string | null>(null);
   const [selectedAudioItag, setSelectedAudioItag] = useState<string | null>(null);
   
-  // Estado para la descarga
+  // Download state
   const [loading, setLoading] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
   const [downloadComplete, setDownloadComplete] = useState<boolean>(false);
   const [downloadPath, setDownloadPath] = useState<string | null>(null);
 
   /**
-   * Configuración de notificaciones
+   * Notifications configuration
    */
-  const videoSuccess = () => toast.success('¡Video descargado exitosamente!', { id: Date.now().toString() });
-  const videoError = () => toast.error('Error al descargar el video', { id: Date.now().toString() });
+  const videoSuccess = () => toast.success('Video downloaded successfully!', { id: Date.now().toString() });
+  const videoError = () => toast.error('Error downloading video', { id: Date.now().toString() });
 
   /**
-   * Manejador para buscar información del video
+   * Handler to search for video information
    */
   const handleSearch = async () => {
     if (!videoUrl || !videoUrl.trim()) {
-      toast.error('Por favor ingresa una URL válida');
+      toast.error('Please enter a valid URL');
       return;
     }
     
@@ -56,21 +56,21 @@ const App: React.FC = () => {
   };
 
   /**
-   * Efecto para configurar los listeners de IPC
+   * Effect to configure IPC listeners
    */
   useEffect(() => {
-    // Listener para respuesta de búsqueda de URL
+    // Listener for URL search response
     const urlReplyHandler = (_: any, arg: FormatList) => {
       setLoading(false);
       setFormatList(arg);
     };
     
-    // Listener para progreso de descarga
+    // Listener for download progress
     const progressHandler = (_: any, arg: number) => {
       setProgress(arg);
     };
     
-    // Listener para respuesta de descarga
+    // Listener for download response
     const downloadReplyHandler = (_: any, arg: string | { status: string, path: string }) => {
       setLoading(false);
       
@@ -92,7 +92,7 @@ const App: React.FC = () => {
       }
     };
     
-    // Listener para respuesta de descarga personalizada
+    // Listener for custom download response
     const customDownloadReplyHandler = (_: any, arg: string | { status: string, path: string }) => {
       setLoading(false);
       
@@ -114,13 +114,13 @@ const App: React.FC = () => {
       }
     };
 
-    // Registrar los listeners
+    // Register listeners
     window.electron.ipcRenderer.on('send-url-reply', urlReplyHandler);
     window.electron.ipcRenderer.on('download-progress', progressHandler);
     window.electron.ipcRenderer.on('download-reply', downloadReplyHandler);
     window.electron.ipcRenderer.on('download-custom-reply', customDownloadReplyHandler);
 
-    // Limpiar los listeners al desmontar
+    // Clean up listeners when unmounting
     return () => {
       window.electron.ipcRenderer.removeAllListeners('send-url-reply');
       window.electron.ipcRenderer.removeAllListeners('download-progress');
@@ -130,16 +130,16 @@ const App: React.FC = () => {
   }, []);
 
   /**
-   * Manejador de descarga
+   * Download handler
    */
   const handleDownload = () => {
-    // La lógica de descarga se maneja en el componente FormatSelector
+    // Download logic is handled in the FormatSelector component
   };
 
   return (
     <>
       <div className="bg-gradient-to-r from-violet-900 to-blue-950 flex flex-col justify-center items-center min-h-screen text-white">
-        {/* Componente de carga */}
+        {/* Loading component */}
         {loading && (
           <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50 z-50">
             <div className="bg-black p-4 rounded shadow-lg flex justify-center items-center">
@@ -148,10 +148,10 @@ const App: React.FC = () => {
           </div>
         )}
         
-        {/* Encabezado de la aplicación */}
+        {/* Application header */}
         <Header />
         
-        {/* Barra de búsqueda */}
+        {/* Search bar */}
         <SearchBar 
           videoUrl={videoUrl}
           setVideoUrl={setVideoUrl}
@@ -160,10 +160,10 @@ const App: React.FC = () => {
         
         {formatList !== null && (
           <div>
-            {/* Vista previa del video */}
+            {/* Video preview */}
             <VideoPreview url={formatList.url} />
             
-            {/* Selector de formatos */}
+            {/* Format selector */}
             <FormatSelector 
               formats={formatList.info}
               selectedVideoItag={selectedVideoItag}
@@ -177,23 +177,23 @@ const App: React.FC = () => {
           </div>
         )}
         
-        {/* Estado de la descarga */}
+        {/* Download status */}
         <DownloadStatus 
           isLoading={loading}
           progress={progress}
         />
         
-        {/* Resultado de la descarga */}
+        {/* Download result */}
         <DownloadResult 
           downloadComplete={downloadComplete}
           downloadPath={downloadPath}
         />
       </div>
       
-      {/* Sistema de notificaciones */}
+      {/* Notification system */}
       <Toaster position="bottom-center" reverseOrder={false} />
       
-      {/* Pie de página */}
+      {/* Footer */}
       <Footer />
     </>
   )

@@ -1,5 +1,5 @@
 /**
- * Componente para mostrar la vista previa del video
+ * Component to display video preview
  */
 import React from 'react';
 
@@ -8,7 +8,7 @@ interface VideoPreviewProps {
 }
 
 /**
- * Muestra una vista previa del video usando un iframe de YouTube
+ * Displays a video preview using a YouTube iframe
  */
 const VideoPreview: React.FC<VideoPreviewProps> = ({ url }) => {
   return (
@@ -17,7 +17,7 @@ const VideoPreview: React.FC<VideoPreviewProps> = ({ url }) => {
         width="570" 
         height="320" 
         src={url}
-        title="Vista previa del video" 
+        title="Video preview" 
         frameBorder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
