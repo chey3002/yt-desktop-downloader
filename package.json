@@ -1,6 +1,6 @@
 {
   "name": "yt-desktop-downloader",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "A simple desktop app to download YouTube videos",
   "main": "./out/main/index.js",
   "author": "Carlos Valladarez",
