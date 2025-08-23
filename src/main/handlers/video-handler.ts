@@ -7,7 +7,7 @@ import {
   downloadVideoAndAudio,
   downloadCustomVideoAndAudio,
   getVideoFormats
-} from '../services/video-service'
+} from '../services/yt-dlp-service'
 import { combineVideoAndAudio } from '../services/ffmpeg-service'
 import { cleanStrings } from '../utils/string-utils'
 import { CustomDownloadData } from '../interfaces/video.interfaces'
@@ -122,15 +122,11 @@ async function downloadAndCombineCustom(
   event?: IpcMainEvent
 ): Promise<void> {
   // Download video and audio with specific formats
-  const { videoPath, audioPath, title, author } = await downloadCustomVideoAndAudio(
-    videoUrl,
-    videoItag,
-    audioItag,
-    event
-  )
+  const result = await downloadCustomVideoAndAudio(videoUrl, videoItag, audioItag, event)
+  const { videoPath, audioPath, title: name, author } = result
 
   // Create clean filename
-  const outputName = cleanStrings(title) + ' - ' + cleanStrings(author) + ' (custom).mp4'
+  const outputName = cleanStrings(name) + ' - ' + cleanStrings(author) + ' (custom).mp4'
   const finalOutput = path.join(outputPath, outputName)
 
   // Combine the files with progress notification
