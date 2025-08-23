@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, IpcMainEvent } from 'electron'
 import path, { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -7,7 +7,21 @@ import ytdl from '@distube/ytdl-core'
 import fs from 'fs'
 import ffmpeg from 'fluent-ffmpeg'
 
-function createWindow() {
+// Definición de tipos
+interface CustomDownloadData {
+  url: string;
+  videoItag: string;
+  audioItag: string;
+}
+
+interface VideoAudioResult {
+  videoPath: string;
+  audioPath: string;
+  name: string;
+  author: string;
+}
+
+function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 900,
@@ -45,9 +59,6 @@ function createWindow() {
   }
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
@@ -58,7 +69,7 @@ app.whenReady().then(() => {
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
-  ipcMain.on('download', (event, data) => {
+  ipcMain.on('download', (event: IpcMainEvent, data: string) => {
     try {
       const url = data
       const outputPath = app.getPath('downloads')
@@ -76,7 +87,7 @@ app.whenReady().then(() => {
     }
   })
   // IPC event for downloading video
-  ipcMain.on('send-url', async (event, data) => {
+  ipcMain.on('send-url', async (event: IpcMainEvent, data: string) => {
     try {
       const url = data
       const videoId = await ytdl.getURLVideoID(url)
@@ -126,7 +137,7 @@ app.whenReady().then(() => {
     }
   })
 
-  ipcMain.on('download-custom', async (event, data) => {
+  ipcMain.on('download-custom', async (event: IpcMainEvent, data: CustomDownloadData) => {
     try {
       const { url, videoItag, audioItag } = data
       const outputPath = app.getPath('downloads')
@@ -155,10 +166,11 @@ app.on('window-all-closed', () => {
     app.quit()
   }
 })
+
 // Combinar el video y el audio usando ffmpeg
-async function combineVideoAndAudio(videoPath, audioPath, outputPath) {
+async function combineVideoAndAudio(videoPath: string, audioPath: string, outputPath: string): Promise<void> {
   try {
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       ffmpeg()
         .input(videoPath)
         .input(audioPath)
@@ -199,14 +211,14 @@ async function combineVideoAndAudio(videoPath, audioPath, outputPath) {
   }
 }
 
-async function downloadAndCombine(videoUrl, outputPath) {
-  const { videoPath, audioPath, name, author } = await downloadVideoAndAudio(videoUrl, outputPath)
+async function downloadAndCombine(videoUrl: string, outputPath: string): Promise<void> {
+  const { videoPath, audioPath, name, author } = await downloadVideoAndAudio(videoUrl)
   const outputName = cleanStrings(name) + ' - ' + cleanStrings(author) + '.mp4'
-  outputPath = path.join(outputPath, outputName)
-  await combineVideoAndAudio(videoPath, audioPath, outputPath)
+  const finalOutputPath = path.join(outputPath, outputName)
+  await combineVideoAndAudio(videoPath, audioPath, finalOutputPath)
 }
 
-async function downloadAndCombineCustom(videoUrl, videoItag, audioItag, outputPath) {
+async function downloadAndCombineCustom(videoUrl: string, videoItag: string, audioItag: string, outputPath: string): Promise<void> {
   const info = await ytdl.getInfo(videoUrl)
   const videoFormat = info.formats.find((f) => f.itag.toString() === videoItag.toString())
   const audioFormat = info.formats.find((f) => f.itag.toString() === audioItag.toString())
@@ -214,13 +226,18 @@ async function downloadAndCombineCustom(videoUrl, videoItag, audioItag, outputPa
   const audioPath = path.join(app.getPath('downloads'), 'temp_audio_custom.aac')
   if (fs.existsSync(videoPath)) fs.unlinkSync(videoPath)
   if (fs.existsSync(audioPath)) fs.unlinkSync(audioPath)
+  
+  if (!videoFormat || !audioFormat) {
+    throw new Error('No se encontraron los formatos solicitados')
+  }
+  
   const videoStream = ytdl(videoUrl, { format: videoFormat })
   const audioStream = ytdl(videoUrl, { format: audioFormat })
   await Promise.all([
-    new Promise((resolve, reject) => {
+    new Promise<void>((resolve, reject) => {
       videoStream.pipe(fs.createWriteStream(videoPath)).on('finish', resolve).on('error', reject)
     }),
-    new Promise((resolve, reject) => {
+    new Promise<void>((resolve, reject) => {
       audioStream.pipe(fs.createWriteStream(audioPath)).on('finish', resolve).on('error', reject)
     })
   ])
@@ -233,7 +250,7 @@ async function downloadAndCombineCustom(videoUrl, videoItag, audioItag, outputPa
   await combineVideoAndAudio(videoPath, audioPath, finalOutput)
 }
 
-async function downloadVideoAndAudio(videoUrl) {
+async function downloadVideoAndAudio(videoUrl: string): Promise<VideoAudioResult> {
   try {
     const info = await ytdl.getInfo(videoUrl)
     // Filtrar los formatos de video y audio deseados que no sean webm
@@ -263,10 +280,10 @@ async function downloadVideoAndAudio(videoUrl) {
     const audioStream = ytdl(videoUrl, { format: audioFormat })
 
     await Promise.all([
-      new Promise((resolve, reject) => {
+      new Promise<void>((resolve, reject) => {
         videoStream.pipe(fs.createWriteStream(videoPath)).on('finish', resolve).on('error', reject)
       }),
-      new Promise((resolve, reject) => {
+      new Promise<void>((resolve, reject) => {
         audioStream.pipe(fs.createWriteStream(audioPath)).on('finish', resolve).on('error', reject)
       })
     ])
@@ -284,7 +301,8 @@ async function downloadVideoAndAudio(videoUrl) {
     throw error
   }
 }
-function cleanStrings(string) {
+
+function cleanStrings(string: string): string {
   // Lista de caracteres no deseados
   const caracteresNoDeseados = /[<>:"/\\|?*]/g
   // Reemplazar los caracteres no deseados con un espacio en blanco
