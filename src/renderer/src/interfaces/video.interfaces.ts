@@ -3,22 +3,22 @@
  */
 
 export interface FormatInfo {
-  itag: number;
-  container: string;
-  qualityLabel?: string;
-  mimeType: string;
-  fps?: number;
-  codecs: string;
-  audioQuality?: string;
-  bitrate?: number;
-  hasVideo: boolean;
-  hasAudio: boolean;
+  itag: number
+  container: string
+  qualityLabel?: string
+  mimeType: string
+  fps?: number
+  codecs: string
+  audioQuality?: string
+  bitrate?: number
+  hasVideo: boolean
+  hasAudio: boolean
 }
 
 /**
  * Representa los datos de la lista de formatos disponibles para un video
  */
 export interface FormatList {
-  url: string;
-  info: FormatInfo[];
+  url: string
+  info: FormatInfo[]
 }

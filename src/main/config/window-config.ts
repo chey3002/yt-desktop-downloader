@@ -1,15 +1,15 @@
 /**
  * Configuración de la ventana principal de la aplicación
  */
-import { BrowserWindow } from 'electron';
-import { join } from 'path';
-import { is } from '@electron-toolkit/utils';
-import icon from '../../../resources/icon.png?asset';
-import { configureFFmpeg } from '../services/ffmpeg-service';
+import { BrowserWindow } from 'electron'
+import { join } from 'path'
+import { is } from '@electron-toolkit/utils'
+import icon from '../../../resources/icon.png?asset'
+import { configureFFmpeg } from '../services/ffmpeg-service'
 
 /**
  * Crea y configura la ventana principal de la aplicación
- * 
+ *
  * @returns La instancia de BrowserWindow creada
  */
 export function createMainWindow(): BrowserWindow {
@@ -25,29 +25,29 @@ export function createMainWindow(): BrowserWindow {
       sandbox: false,
       nodeIntegration: true
     }
-  });
+  })
 
   // Configurar FFmpeg
-  configureFFmpeg();
-  
+  configureFFmpeg()
+
   // Mostrar la ventana cuando esté lista
   mainWindow.on('ready-to-show', () => {
-    mainWindow.show();
-  });
+    mainWindow.show()
+  })
 
   // Configurar el manejo de enlaces externos
   mainWindow.webContents.setWindowOpenHandler((details) => {
     // Abrir enlaces en el navegador predeterminado del sistema
-    require('electron').shell.openExternal(details.url);
-    return { action: 'deny' };  // Evitar que se abra en la app
-  });
+    require('electron').shell.openExternal(details.url)
+    return { action: 'deny' } // Evitar que se abra en la app
+  })
 
   // Cargar el contenido - URL en desarrollo o archivo HTML en producción
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);
+    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
+    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 
-  return mainWindow;
+  return mainWindow
 }
